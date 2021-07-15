@@ -1,0 +1,329 @@
+
+openapi: 3.0.0
+info:
+  title: ASG Technologies Mobius REST
+  version: '1.0'
+  description: |
+    This page describes the Mobius REST API
+
+externalDocs:
+  description: Additional information about the Mobius REST API can be found here
+  url: /api.html
+
+servers:
+  - url: /mobius/rest
+
+tags:
+  - name: Annotations
+    description: Operations on document annotations
+  - name: Archive Write
+    description: Services for Archiving documents
+    externalDocs:
+      description: Additional information about archiving documents can be found here
+      url: /archive-write/archive-write.html
+  - name: Archiving Status
+    description: Returns document archiving status.
+  - name: Capture Drop Targets
+    description: REST services for using drop targets for capturing (archiving) documents
+  - name: Contentstreams
+    description: |
+      REST services for retrieving a resource representing one or more rendered pages from one or more documents.
+  - name: Contentstreams Status
+    description: |
+      REST services for retrieving status of lengthy contentstreams operations
+  - name: Content Classes
+    description: Returns a list of content classes (previously known as 'Record Types') for the specified repository.
+  - name: Direct Connect Definition Service      
+    description: |
+      REST services for defining and executing sharable hyperlinks to specific content within Mobius View.
+  - name: Document Checkout
+    description: REST services for checking out and retrieving information about checkout documents.
+  - name: Document Collections
+    description: REST services for retrieving and persisting collections.
+  - name: Favorites Services
+    description: |
+      REST services for retrieving and persisting bookmark-type favorites, and favorites folders.
+  - name: Hostviewer
+    description: "REST services for retrieving a URL to launch Mobius View or SharePoint server for the purpose of viewing a document. This service supports VDR and SharePoint Repositories only."
+  - name: Import Personal Folders
+    description: Import Personal Folders Files to a Repository.
+  - name: Indexes By Content Class
+    description: REST services for retrieving repository indexes associated with a content class.
+  - name: Indexing
+    description: |
+      REST services for retrieving, adding, modifying, and deleting the indexes of one or more repositories.
+  - name: Navigation Service - Document Folders
+    description: REST service to retrieve parent folders of the specified document.
+  - name: Navigation Service - Document Information
+    description: REST services to retrieve information about document pages.
+  - name: Navigation Service - Folder Children and Parent
+    description: REST service to retrieve children or parent of specified folder.
+  - name: Navigation Service - Repository Root
+    description: REST service to retrieve repository root children. Repository root children can be folders or documents.
+  - name: Password Change
+    description: Password change services
+  - name: Repositories
+    description: Returns a list of repositories.  The returned repositories can be filtered based on whether they share a list of specific indexes.
+  - name: Repository Capabilities
+    description: Returns a list of repository capabilities.
+  - name: Resources
+    description: |
+      This service returns a collection of HATEOAS links describing the available licensed top-level Mobius View REST API resources. This service is sometimes referred to as the Discovery Service.
+  - name: RM event templates
+    description: |
+      Event Templates define event types. Each Event Template has a unique name and a list of parameters.  Retention policies are created using Event Templates. Once any Retention Policy starts using Event Template, the Event Template cannot be modified or deleted.  The Event Templates can be disabled.
+  - name: RM events processing
+    description: |
+      Records Management service uses events for triggering retention processing
+    externalDocs:
+      description: More details
+      url: /records-management/records-management.html#rmevents
+  - name: RM hold
+    description: Retrieve the hold status of specified documents
+  - name: RM policies
+    description: |
+      This resource is provided for adding, updating and removing retention policies.
+    externalDocs:
+      description: More details
+      url: /records-management/records-management.html#rmpolicies
+  - name: RM retention
+    description: |
+      This resource is provided for the inquiry of the information about active retentions.
+    externalDocs:
+      description: More details
+      url: /records-management/records-management.html#rmretentions
+  - name: Searching
+    description: |
+      REST services for executing, retrieving, or persisting searches.
+  - name: Settings
+    description: This service provides a summary of Mobius Configuration settings used by Mobius end-user clients.
+  - name: Text Searching
+    description: REST services for retrieving pages on which specific text appears
+  - name: Wopi
+    description: REST services based on WOPI Protocol for viewing and saving documents in Office Web Client
+components:
+  securitySchemes:
+    externalAuthentication:
+      description: |
+        Enabled when the vendor.type attribute in /home/mdpbuild/asg/mobius/config/application.yaml is set to one of: [TOMCAT, WEBSPHERE, IIS, APACHE, SITEMINDER].
+        Disabled when the vendor.type attribute in /home/mdpbuild/asg/mobius/config/application.yaml is set to NONE.
+
+        When externalAuthentication is enabled, the Authorization header must be specified, with its value set to Basic btoa({user}:{password}), where btoa() is BASE64 encoding,
+        {user} is the user name associated with the external Authentication provider, and {password} is the user's password.
+
+        When externalAuthentication is enabled and application server security is being used (enabled security-constraint for /rest/* in web.xml), users must belong to the role defined in the constraint.
+
+        When externalAuthentication is used in conjunction with repositories configured for SSO, the SSO user is derived from the principal.
+
+        To avoid being prompted again, the Authorization header should be provided in all requests.
+
+        To avoid re-authenticating with an external security provider, the client-id token returned by every request should be resubmitted on each subsequent request.
+      type: http
+      scheme: basic
+
+    tokenAuthentication:
+      description: |
+        Mobius View uses a secure Opaque Client Token, exchanged via the `client-id` HTTP header or query parameter, to retain user identity and various repository authorizations across multiple
+        requests. The `client-id` token is returned as an HTTP response header after the initial call, and may be updated in subsequent calls if additional credentials are provided by the REST
+        client. The token reduces the burden of re-authorizations during each call without session caching. _<span style="color: red;">To take advantage of this token authentication, REST clients
+        should send the `client-id` header or query parameter with each request.</span>_ Note that the token has an expiration policy. This means that the token will be invalidated after the
+        expiration time (5 hours). After expiration, Mobius View will invalidate the token and the REST client must re-authenticate itself.
+
+        To avoid re-authenticating with an external security provider, or with already-authenticated repositories, the client-id token returned by every request should be resubmitted
+        on each subsequent request.
+      type: apiKey
+      in: header
+      name: client-id
+
+    repositoryAuthentication:
+      description: |
+        Applicable when the Repository authentication type is set to PROMPT or SSO (Single Sign-On).  Enabling SSO authentication requires sharing the Session Key with the
+        appropriate Mobius server. At most, the credentials for only one SSO repository are required, which will typically be the primary repository.  When externalAuthentication
+        is enabled, the SSO user is derived from the principal.
+
+        When a REST client tries to access a repository that requires credentials (e.g., a repository configured for prompting) and valid credentials for that repository were not
+        provided before (and stored in the client-id token), it will receive a **401 Unauthorized** response and a list of the repository names in a "repositories" attribute of
+        "RepositoryLoginErrorDetail" type. For example, here's a **401 Unauthorized** response for a repository named "Mobius":
+
+        <div>
+
+        <pre>{
+          <span style="color: rgb(102,14,122);">"code"</span>: <span style="color: blue;">0</span>,
+          <span style="color: rgb(102,14,122);">"message"</span>: <span style="color: green;">"Repositories require authentication"</span>,
+          <span style="color: rgb(102,14,122);">"link"</span>: <span style="color: green;">"will be provided soon"</span>,
+          <span style="color: rgb(102,14,122);">"correlationId"</span>: <span style="color: green;">"b21c3bfe-f8c0-4456-b8da-eddf4328bce7"</span>,
+          <span style="color: rgb(102,14,122);">"details"</span>: [{
+          <span style="color: rgb(102,14,122);">"type"</span> : <span style="color: green;">"RepositoryLoginErrorDetail"</span>,
+          <span style="color: rgb(102,14,122);">"repositories"</span> : [ <span style="color: green;">"Mobius"</span> ],
+          <span style="color: rgb(102,14,122);">"methods"</span> : [ <span style="color: green;">"Basic"</span>]
+          }]
+        }</pre>
+
+        </div>
+
+        To access a repository for the first time, typically in response to receiving a **401 Unauthorized** error, a REST
+        client must provide the credentials for that repository in a custom header or query parameter using a   method similar to
+        [Basic access authentication](https://en.wikipedia.org/wiki/Basic_access_authentication).  Mobius View provides a
+        mechanism for REST clients to supply repository credentials by repository name or by repository ID.  Rest clients can use
+        defined HTTP header names or query parameters to provide repository credentials to Mobius View.  The header or parameter
+        value consists of 2 logical parts, separated by a space ("+" for query parameters): the authorization method (only the
+        "BASIC" method is supported for now) and the repository authentication data in
+        [BASE64 encoded format](https://www.base64encode.org/). <span style="color: red;">Note: _For security reasons, REST
+        clients should use secure transport (https) to send user credentials, as they are not encrypted (only encoded)._</span>
+
+        When authenticating by repository name, the value of the Authorization-Repo header should be set to 'Basic btoa({repository}:{user}:{password})', where 'btoa()' is BASE64
+        encoding, 'repository' is the name of the desired Mobius View repository, 'user' is the user name associated with the repository, and 'password' is the user's password.
+
+        Authenticating by repository id requires a special format for the name of the authorization header.  Instead of Authorization-Repo, the name of the header should be
+        Authorization-Repo-{id} (where {id} is the repository id), and its value should be set to 'Basic btoa({user}:{password})', where 'btoa()' is BASE64 encoding, {user} is
+        the user name associated with the repository, and 'password' is the user's password.
+
+        To avoid repetitive re-authentication, subsequent requests to the authenticated repository should send the client-id header instead of an Authorization-Repo header.  When
+        accessing a repository against which authentication has not yet occurred, the request should include both the client-id header and a repository authentication header
+        appropriate for the repository in question.
+
+        If external security is enabled, the Authorization header should be re-sent to avoid being prompted again.
+      type: apiKey
+      in: header
+      name: Authorization-Repo
+
+security:
+  - externalAuthentication: []
+  - tokenAuthentication: []
+  - repositoryAuthentication: []
+  - externalAuthentication: []
+    tokenAuthentication: []
+  - externalAuthentication: []
+    repositoryAuthentication: []
+  - tokenAuthentication: []
+    repositoryAuthentication: []
+  - externalAuthentication: []
+    repositoryAuthentication: []
+    tokenAuthentication: []
+
+paths:
+  /annotations/fonts:
+    $ref: "annotation-stamps-and-fonts/definition.yaml#/paths/~1annotations~1fonts"
+  /annotations/stamps:
+    $ref: "annotation-stamps-and-fonts/definition.yaml#/paths/~1annotations~1stamps"
+  /checkouts:
+    $ref: "library-services/definition.yaml#/paths/~1checkouts"
+  /checkouts/{checkoutid}:
+    $ref: "library-services/definition.yaml#/paths/~1checkouts~1{checkoutid}"
+  /contentstreams:
+    $ref: "contentstreams/definition.yaml#/paths/~1contentstreams"
+  /contentstreamsstatus:
+    $ref: "contentstreams/definition.yaml#/paths/~1contentstreamsstatus"
+  /contentstreamsstatus/{statusid}:
+    $ref: "contentstreams/definition.yaml#/paths/~1contentstreamsstatus~1{statusid}"
+  /capturedroptargets:
+    $ref: "capture-drop-targets/definition-doconly.yaml#/paths/~1capturedroptargets"
+  /capturedroptargets/{capturedroptargetid}:
+    $ref: "capture-drop-targets/definition-doconly.yaml#/paths/~1capturedroptargets~1{capturedroptargetid}"
+  /collections:
+    $ref: "collections/definition.yaml#/paths/~1collections"
+  /collections/{collectionid}:
+    $ref: "collections/definition.yaml#/paths/~1collections~1{collectionid}"
+  /directconnect:
+    $ref: "directconnect/definition.yaml#/paths/~1directconnect"
+  /documents/{documentid}/annotations:
+    $ref: "annotations/definition.yaml#/paths/~1documents~1{documentid}~1annotations"
+  /documents/{documentid}/annotations/{annotationid}:
+    $ref: "annotations/definition.yaml#/paths/~1documents~1{documentid}~1annotations~1{annotationid}"
+  /documents/{documentid}/pages:
+    $ref: "find-pages/definition.yaml#/paths/~1documents~1{documentid}~1pages"
+  /documents/{documentid}/parents:
+    $ref: "navigation/definition.yaml#/paths/~1documents~1{documentid}~1parents"
+  /documents/{documentid}/metadata:
+    $ref: "navigation/definition.yaml#/paths/~1documents~1{documentid}~1metadata"
+  /documents/{documentid}/retentions:
+    $ref: "navigation/definition.yaml#/paths/~1documents~1{documentid}~1retentions"
+  /documents/{documentid}/properties:
+    $ref: "navigation/definition.yaml#/paths/~1documents~1{documentid}~1properties"
+  /favorites:
+    $ref: "favorites/definition.yaml#/paths/~1favorites"
+  /favorites/children:
+    $ref: "favorites/definition.yaml#/paths/~1favorites~1children"
+  /favorites/folders:
+    $ref: "favorites/definition.yaml#/paths/~1favorites~1folders"
+  /favorites/{favoriteid}:
+    $ref: "favorites/definition.yaml#/paths/~1favorites~1{favoriteid}"
+  /favorites/{favoriteid}/content:
+    $ref: "favorites/definition.yaml#/paths/~1favorites~1{favoriteid}~1content"
+  /favorites/{favoritesfolderid}:
+    $ref: "favorites/definition.yaml#/paths/~1favorites~1{favoritesfolderid}"
+  /favorites/{favoritesfolderid}/children:
+    $ref: "favorites/definition.yaml#/paths/~1favorites~1{favoritesfolderid}~1children"
+  /folders/{folderid}/children:
+    $ref: "navigation/definition.yaml#/paths/~1folders~1{folderid}~1children"
+  /folders/{folderid}/documents:
+    $ref: "navigation/definition.yaml#/paths/~1folders~1{folderid}~1documents"
+  /folders/{folderid}/parents:
+    $ref: "navigation/definition.yaml#/paths/~1folders~1{folderid}~1parents"
+  /hostviewer:
+    $ref: "hostviewer/definition.yaml#/paths/~1hostviewer"
+  /indexes:
+    $ref: "indexes/definition.yaml#/paths/~1indexes"
+  /recordtypes:
+    $ref: "recordtypes/definition.yaml#/paths/~1recordtypes"
+  /repositories/{repositoryid}/archivingstatuses/{statusid}:
+    $ref: "archive-write/definition.yaml#/paths/~1repositories~1{repositoryid}~1archivingstatuses~1{statusid}"
+  /repositories/{repositoryid}/documents:
+    $ref: "archive-write/definition.yaml#/paths/~1repositories~1{repositoryid}~1documents"
+  /repositories:
+    $ref: "repositories/definition.yaml#/paths/~1repositories"
+  /repositories/{repositoryid}/capabilities:
+    $ref: "repositories/definition.yaml#/paths/~1repositories~1{repositoryid}~1capabilities"
+  /repositories/{repositoryid}/indexes:
+    $ref: "repository-indexes-by-document-class/definition.yaml#/paths/~1repositories~1{repositoryid}~1indexes"
+  /repositories/{repositoryid}/children:
+    $ref: "navigation/definition.yaml#/paths/~1repositories~1{repositoryid}~1children"
+  /repositories/{repositoryid}/objecttypes:
+    $ref: "navigation/definition.yaml#/paths/~1repositories~1{repositoryid}~1objecttypes"
+  /repositories/{repositoryid}/objecttypes/{objecttypeid}:
+    $ref: "navigation/definition.yaml#/paths/~1repositories~1{repositoryid}~1objecttypes~1{objecttypeid}"
+  /repositories/{repositoryid}/passwords:
+    $ref: "repository-passwords-management/definition.yaml#/paths/~1repositories~1{repositoryid}~1passwords"
+  /repositories/{repositoryid}/imports:
+    $ref: "repository-personal-folders-import/definition.yaml#/paths/~1repositories~1{repositoryid}~1imports"
+  /repositories/{repositoryid}/recordtypes:
+    $ref: "repository-record-types/definition.yaml#/paths/~1repositories~1{repositoryid}~1recordtypes"
+  /resources:
+    $ref: "resources/definition.yaml#/paths/~1resources"
+  /rm/events:
+    $ref: "records-management/definition.yaml#/paths/~1rm~1events"
+  /rm/events/{id}:
+    $ref: "records-management/definition.yaml#/paths/~1rm~1events~1{id}"
+  /rm/events/{id}/reprocess:
+    $ref: "records-management/definition.yaml#/paths/~1rm~1events~1{id}~1reprocess"
+  /rm/events/{id}/status:
+    $ref: "records-management/definition.yaml#/paths/~1rm~1events~1{id}~1status"
+  /rm/eventtemplates:
+    $ref: "records-management/definition.yaml#/paths/~1rm~1eventtemplates"
+  /rm/eventtemplates/{id}:
+    $ref: "records-management/definition.yaml#/paths/~1rm~1eventtemplates~1{id}"
+  /rm/eventtemplates/{id}/disable:
+    $ref: "records-management/definition.yaml#/paths/~1rm~1eventtemplates~1{id}~1disable"
+  /rm/eventtemplates/{id}/enable:
+    $ref: "records-management/definition.yaml#/paths/~1rm~1eventtemplates~1{id}~1enable"
+  /rm/holds:
+    $ref: "records-management/definition.yaml#/paths/~1rm~1holds"
+  /rm/policies:
+    $ref: "records-management/definition.yaml#/paths/~1rm~1policies"
+  /rm/policies/{id}:
+    $ref: "records-management/definition.yaml#/paths/~1rm~1policies~1{id}"
+  /rm/retentions:
+    $ref: "records-management/definition.yaml#/paths/~1rm~1retentions"
+  /searches:
+    $ref: "searches/definition.yaml#/paths/~1searches"
+  /searches/{searchid}:
+    $ref: "searches/definition.yaml#/paths/~1searches~1{searchid}"
+  /searches/{searchid}/acl:
+    $ref: "searches/definition.yaml#/paths/~1searches~1{searchid}~1acl"
+  /settings:
+    $ref: "config-summary/definition.yaml#/paths/~1settings"
+  /wopi/files/{file_id}/contents:
+    $ref: "wopi/definition.yaml#/paths/~1wopi~1files~1{file_id}~1contents"
+  /wopi/files/{file_id}:
+    $ref: "wopi/definition.yaml#/paths/~1wopi~1files~1{file_id}"
+
