@@ -1,0 +1,338 @@
+swagger: '2.0'
+info:
+  title: Communication Management API
+  description: This is Swagger UI environment generated for the Communication Management specification
+  version: 1.0.0
+host: serverRoot
+basePath: /communicationManagement/
+schemes:
+  - https
+consumes:
+  - application/json;charset=utf-8
+produces:
+  - application/json;charset=utf-8
+tags:
+  - name: communicationMessage
+paths:
+  /communicationMessage/build:
+    post:
+      operationId: buildCommunicationMessage
+      summary: Builds a CommunicationMessage
+      description: This operation creates Template entity which has the dynamic data that need to be replaced for a given template and provides the attachment as a response.
+      tags:
+        - communicationMessage
+      parameters:
+        - name: communicationMessage
+          description: The CommunicationMessage to be created
+          required: true
+          schema:
+            $ref: '#/definitions/CommunicationMessage_Build'
+          in: body
+      responses:
+        '201':
+          description: Created
+          schema:
+            $ref: '#/definitions/Attachment'
+        '400':
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/Error'
+        '401':
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/Error'
+        '403':
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/Error'
+        '405':
+          description: Method Not allowed
+          schema:
+            $ref: '#/definitions/Error'
+        '500':
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/Error'
+            
+      security:
+        - commservice_auth: []      
+            
+            
+  /communicationMessage/send:
+    post:
+      operationId: sendCommunicationMessage
+      summary: Creates a CommunicationMessage
+      description: This operation creates a CommunicationMessage entity.
+      tags:
+        - communicationMessage
+      parameters:
+        - name: communicationMessage
+          description: The CommunicationMessage to be created
+          required: true
+          schema:
+            $ref: '#/definitions/CommunicationMessage_Create'
+          in: body
+      responses:
+        '200':
+          description: Recieved request for sending communication
+          schema:
+            $ref: '#/definitions/RequestId'
+        '400':
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/Error'
+        '401':
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/Error'
+        '403':
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/Error'
+        '404':
+          description: Not Found
+          schema:
+            $ref: '#/definitions/Error'
+        '405':
+          description: Method Not allowed
+          schema:
+            $ref: '#/definitions/Error'
+        '500':
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/Error'
+            
+      security:
+        - commservice_auth: []      
+  
+ 
+securityDefinitions:
+  commservice_auth:
+    type: basic
+                
+            
+definitions:
+  Attachment:
+    type: object
+    description: 'Complements the description of an element (for instance a product) through video, pictures...'
+    required:
+      - content
+      - mimeType
+    properties:
+      content:
+        type: string
+        format: byte
+        description: 'The actual contents of the attachment object, if embedded, encoded as base64'
+      mimeType:
+        type: string
+        description: 'Attachment mime type such as extension file for video, picture and document'
+        
+        
+  Characteristic:
+    type: object
+    description: Describes a given characteristic of an object or entity through a name/value pair.
+    required:
+      - name
+      - value
+    properties:
+      name:
+        type: string
+        description: Name of the characteristic
+      value:
+        type: string
+        description: Value of the characteristic
+      valueType:
+        type: string
+        description: Data type of the value of the characteristic
+        
+        
+  TemplateValues:
+    type: object
+    description: Contains all the data required for the creation of the template.
+    required:
+      - characteristic
+      - tableData
+      - templateName
+    properties:
+      templateName:
+        type: string
+        description: Name of the template that needs to be build
+      brandId:
+        type: string
+        description: Brand Id
+      characteristic:
+        type: array
+        items:
+          $ref: '#/definitions/Characteristic'
+        description: Any additional characteristic(s) of this message
+      tableData:
+        type: array
+        items:
+          $ref: '#/definitions/TableData'
+        description: Any additional characteristic(s) of this message
+        
+        
+  TableData:
+    type: object
+    description: Contains all the data required for the data mentioned in the tables defined in the  template.
+    required:
+      - rowData
+    properties:
+      name:
+        type: string
+        description: Name of the table
+      rowData:
+        type: array
+        items:
+          $ref: '#/definitions/RowData'
+        description: Any additional characteristic(s) of this message
+        
+        
+  RowData:
+    type: object
+    description: Contains all the data required for the data mentioned in the rows with in the table defined in the template.
+    required:
+      - columnData
+    properties:
+      columnData:
+        type: array
+        items:
+          $ref: '#/definitions/Characteristic'
+        description: Any additional characteristic(s) of this message
+      childData:
+        type: array
+        items:
+          $ref: '#/definitions/TableData'
+        description: Any additional characteristic(s) of this message
+        
+        
+  CommunicationMessage_Build:
+    type: object
+    description: 'Creates the template data which is required to generate the template,'
+    required:
+      - templateValues
+    properties:
+      templateValues:
+        description: Any additional characteristic(s) of this message
+        $ref: '#/definitions/TemplateValues'
+      mimeType:
+        type: string
+        description: 'Attachment mime type such as extension file for video, picture and document  '
+        
+        
+  CommunicationMessage_Create:
+    type: object
+    description: |-
+      Communication message means a notification approach in the format of a message which can be dispatched (sent) to the certain user by the system with the content which can be felt and understood by the recipient. The user can be either a final customer or a customer service agent. The message can reach the customer in different interaction channels, including: email, short message, mobile app notification (push).
+      Skipped properties: id,href
+    required:
+      - sourceApp
+      - tasks
+      - deliveryMode
+    properties:
+      sourceApp:
+        type: string
+        description: Source Application Name
+      correlationID:
+        type: string
+        description: Unique Identifier for the request which can be used later for the confirmation of the message sent to the recipients
+      description:
+        type: string
+        description: Description for the whole object
+      contentText:
+        type: string
+        description: 'The content of the communication message, this will be used in case if the template data is not sent'
+      attachment:
+        type: array
+        items:
+          $ref: '#/definitions/Attachment'
+        description: Any attachment associated with this message
+      templateData:
+        type: array
+        items:
+          $ref: '#/definitions/TemplateValues'
+        description: Holds the dynamic data  that needs to be replaced in the template
+      tasks:
+        type: array
+        items:
+          $ref: '#/definitions/Task'
+        minItems: 1
+        description: The receiver(s) of this message
+      priority:
+        type: integer
+        description: |-
+          The priority of the communication message.
+          Small number means higher priority
+          Value range (0..100) - default - 50
+          This property should only be used if really required.
+      deliveryWindow:
+        type: string
+        description: 'The delivery is only done within the provided time window. If the current time is outside the delivery window, the message will be requeued in the next window frame. Or on the next day.'
+      deliveryMode:
+        type: string
+        enum:
+         - goAndForget
+         - kafkaResponse
+        description: |-
+           goAndForget sends the communication without any feedback to sending application
+           kafkaResponse puts a topic onto kafka using correlation id
+        
+        
+        
+  Task:
+    type: object
+    description: Receivers of the communication message.
+    required:
+      - media
+    properties:
+      media:
+        type: string
+        description: 'It can be SMS, EMAIL, FAX etc'
+      destination:
+        type: string
+        description: 'In case of SMS this value to be Mobile Number, In case of EMAIL this value to be  Email Id.'
+      metaData:
+        type: array
+        items:
+          $ref: '#/definitions/Characteristic'
+        description: 'Any additional characteristic(s) of this message, e.g. In case of Archiving meta data related to the Document will be passed.'
+        
+        
+  Sender:
+    type: object
+    description: Sender of the communication message.
+    properties:
+      email:
+        type: string
+        description: 'Sender address of email, if the communication type is email'
+      phoneNumber:
+        type: string
+        description: 'Phone number of the sender, if the communication type is SMS.'
+        
+        
+  RequestId:
+    description: Request Id sent for sending the communication message
+    type: object
+    required:
+      - id
+    properties:
+      id:
+        type: string
+        description: Id for the request recieved.
+        
+        
+  Error:
+    description: 'Used when an API throws an Error, typically with a HTTP error response-code (3xx, 4xx, 5xx)'
+    type: object
+    required:
+      - reason
+    properties:
+      code:
+        type: string
+        description: 'Application relevant detail, defined in the API or a common list.'
+      reason:
+        type: string
+        description: Explanation of the reason for the error which can be shown to a client user.
+      status:
+        type: string
+        description: HTTP Error code extension
